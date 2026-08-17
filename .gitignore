@@ -5,9 +5,10 @@ __pycache__/
 
 # C extensions
 *.so
-
+.idea
 # Distribution / packaging
 .Python
+pyWave.zip
 build/
 develop-eggs/
 dist/
