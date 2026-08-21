@@ -1,7 +1,11 @@
 import socket
-from . import build_response, HTTPRequest
+from response import build_response
+from request import HTTPRequest
+from logger import log_connection, log_error
 
-connection = socket.socket(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+connection.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 host = "0.0.0.0"
 port = 8000
 
@@ -14,7 +18,7 @@ print(f"Listening on {host}:{port}")
 while True:
     try:
         client_socket, client_address = connection.accept()
-        print(f"\n!!! NEW CONNECTION FROM !!!\n {client_address}\n\n")
+        # print(f"\n!!! NEW CONNECTION FROM !!!\n {client_address}")
 
 
         with client_socket:
@@ -24,9 +28,16 @@ while True:
 
             req_object = HTTPRequest(raw_request)
 
-            print(f"Path: {req_object.path}\r\n"
-                  f"Method: {req_object.method}\r\n"
-                  f"Browser (User Agent): {req_object.headers.get('user-agent', 'Unknown')}\n")
+            log_connection(
+                client_address=client_address,
+                method=req_object.method,
+                path=req_object.path,
+                user_agent=req_object.headers.get('user-agent', 'Unknown')
+            )
+
+            # print(f"Path: {req_object.path}\r\n"
+            #       f"Method: {req_object.method}\r\n"
+            #       f"Browser (User Agent): {req_object.headers.get('user-agent', 'Unknown')}\n")
 
             if req_object.path == '/':
                 body = "<h1>Main page</h1><p>Wellcome</p>"
@@ -43,10 +54,12 @@ while True:
             client_socket.sendall(response)
 
     except KeyboardInterrupt as e:
-        print(f"\n!!! Server shutting down !!!\n Factor: KeyboardInterrupt\n")
+        log_error("Server shutting down")
+        # print(f"\n!!! Server shutting down !!!\n Factor: KeyboardInterrupt\n")
         break
     except Exception as e:
-        print(f"\n!!! Client request error !!!\n Factor: {e}\n")
+        log_error("Client request error", factor=str(e))
+        # print(f"\n!!! Client request error !!!\n Factor: {e}\n")
         continue
 
 
