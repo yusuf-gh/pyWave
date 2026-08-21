@@ -19,3 +19,12 @@ class HTTPRequest:
         if len(start_line_parts) >= 2:
             self.method = start_line_parts[0]
             self.path = start_line_parts[1]
+
+        for line in lines[1:]:
+            if line == "":
+                break
+
+            if ":" in line:
+                key, value = line.split(":", 1)
+
+                self.headers[key.strip().lower()] = value.strip()
