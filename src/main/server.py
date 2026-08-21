@@ -18,7 +18,6 @@ print(f"Listening on {host}:{port}")
 while True:
     try:
         client_socket, client_address = connection.accept()
-        # print(f"\n!!! NEW CONNECTION FROM !!!\n {client_address}")
 
 
         with client_socket:
@@ -34,10 +33,6 @@ while True:
                 path=req_object.path,
                 user_agent=req_object.headers.get('user-agent', 'Unknown')
             )
-
-            # print(f"Path: {req_object.path}\r\n"
-            #       f"Method: {req_object.method}\r\n"
-            #       f"Browser (User Agent): {req_object.headers.get('user-agent', 'Unknown')}\n")
 
             if req_object.path == '/':
                 body = "<h1>Main page</h1><p>Wellcome</p>"
@@ -55,11 +50,9 @@ while True:
 
     except KeyboardInterrupt as e:
         log_error("Server shutting down")
-        # print(f"\n!!! Server shutting down !!!\n Factor: KeyboardInterrupt\n")
         break
     except Exception as e:
         log_error("Client request error", factor=str(e))
-        # print(f"\n!!! Client request error !!!\n Factor: {e}\n")
         continue
 
 
