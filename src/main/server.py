@@ -2,7 +2,7 @@ import socket
 from response import build_response
 from request import HTTPRequest
 from logger import log_connection, log_error
-
+import os
 
 connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connection.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -12,8 +12,17 @@ port = 8000
 connection.bind((host, port))
 connection.listen(5)
 
+MIME_TYPES = {
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css',
+    '.js': 'application/javascript',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.gif': 'image/gif',
+}
 
-print(f"Listening on {host}:{port}")
+
+print(f"Listening on http://localhost:{port}")
 
 while True:
     try:
@@ -34,17 +43,28 @@ while True:
                 user_agent=req_object.headers.get('user-agent', 'Unknown')
             )
 
-            if req_object.path == '/':
-                body = "<h1>Main page</h1><p>Wellcome</p>"
-                response = build_response(body)
+            requested_path = req_object.path
 
-            elif req_object.path == '/about':
-                body = "<h1>About Us</h1><p>We are building our own server</p>"
-                response = build_response(body)
+            if req_object.path == '/intro':
+                requested_path = '/index.html'
 
-            else :
-                body = "<h1>404 Page not found</h1>"
-                response = build_response(body, status_code=404, status_text="Not found")
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            file_path = os.path.join(BASE_DIR, 'public', requested_path.lstrip('/'))
+
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+
+                with open(file_path, 'rb') as f:
+
+                    file_content = f.read()
+
+                _, ext = os.path.splitext(file_path)
+
+                content_type = MIME_TYPES.get(ext.lower(), 'application/octet-stream')
+                response = build_response(file_content, content_type=content_type)
+
+            else:
+                error_body = "<h1>404 Not Found</h1><p>File does not exists on server</p>".encode('utf-8')
+                response = build_response(error_body, status_code=404, status_text="Not Found")
 
             client_socket.sendall(response)
 
