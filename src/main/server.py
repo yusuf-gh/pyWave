@@ -30,11 +30,11 @@ while True:
 
 
         with client_socket:
-            raw_request = client_socket.recv(4096)
-            if not raw_request:
-                continue
 
-            req_object = HTTPRequest(raw_request)
+            req_object = HTTPRequest.read_from_socket(client_socket)
+
+            if not req_object.method:
+                continue
 
             log_connection(
                 client_address=client_address,
